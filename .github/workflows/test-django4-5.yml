@@ -1,0 +1,39 @@
+name: Tests with Django v4-v5
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        include:
+          - python-version: "3.11"
+            toxenv: py311-django{4.0,4.1,4.2,5.0,5.1,5.2}
+          - python-version: "3.12"
+            toxenv: py312-django{4.0,4.1,4.2,5.0,5.1,5.2}
+
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install "tox<4"
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Run Tests
+      env:
+        TOXENV: ${{ matrix.toxenv }}
+      run: |
+        tox
